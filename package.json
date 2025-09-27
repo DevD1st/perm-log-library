@@ -1,0 +1,19 @@
+{
+  "name": "perm-log-library",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "files": [
+    "./build"
+  ],
+  "scripts": {
+    "build": "del build && tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "del-cli": "^7.0.0"
+  }
+}
