@@ -1,0 +1,114 @@
+import rabbit from "amqplib";
+import {
+  PERM_LOG_EXCHANGE,
+  PermLogEventsEnum,
+  QueueNameEnum,
+  RabbitEmptyMessage,
+  stringifyIfNot,
+} from "./util";
+import { PermLogError, PermLogErrorCodeEnum } from "./error";
+
+type ListenerType = (message: rabbit.ConsumeMessage) => void;
+
+export class EventListener {
+  private static channel?: rabbit.Channel;
+  private static queue?: rabbit.Replies.AssertQueue;
+  private static listener?: ListenerType;
+
+  /**
+   * You can interract with the other functionalities provided
+   * by this class as static methods (EventListener.)
+   * @param rabbitConnString rabbit connection url
+   * @param queueName queue name
+   * @param events events to subscribe to
+   * @param messageListener function to call when a message is published to the queue
+   * @param cb function to call once constructor has finished initializing
+   */
+  constructor(
+    rabbitConnString: string,
+    queueName: QueueNameEnum,
+    events: PermLogEventsEnum[],
+    messageListener: ListenerType,
+    cb: (error?: Error) => any
+  ) {
+    (async () => {
+      try {
+        const conn = await rabbit.connect(rabbitConnString);
+        EventListener.channel = await conn.createChannel();
+        EventListener.channel.prefetch(1);
+        await EventListener.channel.assertExchange(PERM_LOG_EXCHANGE, "topic", {
+          durable: true,
+        });
+        EventListener.queue = await EventListener.channel.assertQueue(
+          queueName,
+          {
+            durable: true,
+          }
+        );
+
+        events.forEach((event) =>
+          EventListener.channel!.bindQueue(
+            EventListener.queue!.queue,
+            PERM_LOG_EXCHANGE,
+            event
+          )
+        );
+
+        EventListener.listener = messageListener;
+
+        EventListener.channel.consume(queueName, EventListener.onMessage);
+
+        cb();
+      } catch (error: any) {
+        cb(
+          new PermLogError({
+            name: PermLogErrorCodeEnum.RabbitInit,
+            message: "Unable to initialize rabbitmq",
+            data: stringifyIfNot(error),
+            stack: error.stack,
+          })
+        );
+      }
+    })();
+  }
+
+  private static onMessage() {
+    EventListener.channel?.consume(
+      EventListener.queue!.queue,
+      (message) => {
+        if (message == null) {
+          return EventListener.channel!.publish(
+            PERM_LOG_EXCHANGE,
+            PermLogEventsEnum.RabbitEmptyMessage,
+            Buffer.from(
+              JSON.stringify(
+                new RabbitEmptyMessage({
+                  queueName: EventListener.queue!.queue,
+                })
+              )
+            ),
+            {
+              persistent: true,
+              timestamp: Date.now(),
+            }
+          );
+        }
+
+        if (this.listener) this.listener(message);
+      },
+      {
+        noAck: true,
+      }
+    );
+  }
+
+  static acknowledgeMessage(message: rabbit.ConsumeMessage) {
+    if (!EventListener.channel)
+      throw new PermLogError({
+        name: PermLogErrorCodeEnum.RabbitInit,
+        message: "channel is undefined, rabbitmq has not been initilaized.",
+      });
+
+    EventListener.channel.ack(message);
+  }
+}
