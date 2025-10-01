@@ -15,6 +15,8 @@ export class EventListener {
   private static queue?: rabbit.Replies.AssertQueue;
   private static listener?: ListenerType;
 
+  private constructor() {}
+
   /**
    * You can interract with the other functionalities provided
    * by this class as static methods (EventListener.)
@@ -24,52 +26,45 @@ export class EventListener {
    * @param messageListener function to call when a message is published to the queue
    * @param cb function to call once constructor has finished initializing
    */
-  constructor(
+  static async init(
     rabbitConnString: string,
     queueName: QueueNameEnum,
     events: PermLogEventsEnum[],
-    messageListener: ListenerType,
-    cb: (error?: Error) => any
+    messageListener: ListenerType
   ) {
-    (async () => {
-      try {
-        const conn = await rabbit.connect(rabbitConnString);
-        EventListener.channel = await conn.createChannel();
-        EventListener.channel.prefetch(1);
-        await EventListener.channel.assertExchange(PERM_LOG_EXCHANGE, "topic", {
-          durable: true,
-        });
-        EventListener.queue = await EventListener.channel.assertQueue(
-          queueName,
-          {
-            durable: true,
-          }
-        );
+    if (EventListener.channel) return EventListener.channel;
 
-        events.forEach((event) =>
-          EventListener.channel!.bindQueue(
-            EventListener.queue!.queue,
-            PERM_LOG_EXCHANGE,
-            event
-          )
-        );
+    try {
+      const conn = await rabbit.connect(rabbitConnString);
+      EventListener.channel = await conn.createChannel();
+      EventListener.channel.prefetch(1);
+      await EventListener.channel.assertExchange(PERM_LOG_EXCHANGE, "topic", {
+        durable: true,
+      });
+      EventListener.queue = await EventListener.channel.assertQueue(queueName, {
+        durable: true,
+      });
 
-        EventListener.listener = messageListener;
+      events.forEach((event) =>
+        EventListener.channel!.bindQueue(
+          EventListener.queue!.queue,
+          PERM_LOG_EXCHANGE,
+          event
+        )
+      );
 
-        EventListener.channel.consume(queueName, EventListener.onMessage);
+      EventListener.listener = messageListener;
+      EventListener.onMessage(); // set up subscriber
 
-        cb();
-      } catch (error: any) {
-        cb(
-          new PermLogError({
-            name: PermLogErrorCodeEnum.RabbitInit,
-            message: "Unable to initialize rabbitmq",
-            data: stringifyIfNot(error),
-            stack: error.stack,
-          })
-        );
-      }
-    })();
+      return EventListener.channel;
+    } catch (error: any) {
+      throw new PermLogError({
+        name: PermLogErrorCodeEnum.RabbitInit,
+        message: "Unable to initialize rabbitmq",
+        data: stringifyIfNot(error),
+        stack: error.stack,
+      });
+    }
   }
 
   private static onMessage() {
@@ -110,5 +105,15 @@ export class EventListener {
       });
 
     EventListener.channel.ack(message);
+  }
+
+  /**
+   * this closes channel and clear all initialised variables
+   */
+  static clearAll() {
+    if (EventListener.channel) EventListener.channel.close();
+    EventListener.channel = undefined;
+    EventListener.queue = undefined;
+    EventListener.listener = undefined;
   }
 }

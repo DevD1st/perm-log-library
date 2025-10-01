@@ -2,8 +2,12 @@ export const PERM_LOG_EXCHANGE = "perm_log_exchange";
 //-----------------------ENUMS------------------------//
 
 export enum QueueNameEnum {
+  /**
+   * For testing purposes only
+   */
+  Test = "test_queue",
   Perm = "perm_queue",
-  LogQueue = "log_queue",
+  Log = "log_queue",
 }
 
 export enum LogLevelEnum {
@@ -75,6 +79,6 @@ export class RabbitEmptyMessage {
  * @returns string
  */
 export function stringifyIfNot(data: any) {
-  if (!data) return "";
+  if (data == undefined) return "";
   return typeof data === "string" ? data : JSON.stringify(data);
 }
