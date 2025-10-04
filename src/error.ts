@@ -8,6 +8,7 @@ export enum PermLogErrorCodeEnum {
    * cannot be classified before designating it as unknown
    */
   Unknown = "Unknown",
+  ValidationError = "ValidationError",
 }
 
 export class PermLogError extends Error {

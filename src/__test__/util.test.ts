@@ -1,5 +1,9 @@
 import { stringifyIfNot } from "../util";
 
+jest.mock("uuid", () => ({
+  v4: "some-random-id",
+}));
+
 describe("stringifyIfNot()", () => {
   describe("it handles falsy correctly", () => {
     it("returns a string for undefined", () => {

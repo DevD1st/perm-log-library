@@ -19,6 +19,10 @@ jest.mock("amqplib", () => ({
   } as never),
 }));
 
+jest.mock("uuid", () => ({
+  v4: "some-random-id",
+}));
+
 describe("EventListener()", () => {
   beforeEach(() => {
     EventListener.clearAll();
