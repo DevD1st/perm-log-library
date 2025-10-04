@@ -11,7 +11,7 @@ export const X_REQUEST_ID = "x-request-id";
 
 //-----------------------Types------------------------//
 
-export type ResponseNameType = ResponeNameEnum & PermLogErrorCodeEnum;
+export type ResponseNameType = ResponeNameEnum | PermLogErrorCodeEnum;
 
 //-----------------------ENUMS------------------------//
 
