@@ -76,6 +76,30 @@ export enum PermLogEventsEnum {
 }
 
 //-----------------------CLASSES------------------------//
+
+export class PermSchemaDto {
+  @Expose()
+  _id!: Types.ObjectId;
+
+  @Expose()
+  permNumber!: number;
+
+  @Expose()
+  calculatedFactorial!: number;
+
+  @Expose()
+  appliedDelay!: number;
+
+  @Expose()
+  updatedAt!: Date;
+
+  @Expose()
+  createdAt!: Date;
+
+  @Expose()
+  __v!: number;
+}
+
 export class PermRequested {
   @Expose()
   reqContext!: RequestContextDto;
@@ -91,14 +115,9 @@ export class PermRequested {
   }
 }
 
-export class PermCalculated {
-  @Expose()
-  permNumber!: number;
-
-  @Expose()
-  result!: number;
-
+export class PermCalculated extends PermSchemaDto {
   constructor(dto?: PermCalculated) {
+    super();
     if (dto) Object.assign(this, dto);
   }
 }
@@ -177,29 +196,6 @@ export class RequestContextDto {
   constructor(dto?: RequestContextDto) {
     if (dto) Object.assign(this, dto);
   }
-}
-
-export class PermSchemaDto {
-  @Expose()
-  _id!: Types.ObjectId;
-
-  @Expose()
-  permNumber!: number;
-
-  @Expose()
-  calculatedFactorial!: number;
-
-  @Expose()
-  appliedDelay!: number;
-
-  @Expose()
-  updatedAt!: Date;
-
-  @Expose()
-  createdAt!: Date;
-
-  @Expose()
-  __v!: number;
 }
 
 //-----------------------FUNCTIONS------------------------//
