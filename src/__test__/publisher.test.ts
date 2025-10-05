@@ -12,10 +12,6 @@ jest.mock("amqplib", () => ({
   } as never),
 }));
 
-jest.mock("uuid", () => ({
-  v4: "some-random-id",
-}));
-
 describe("EventPublisher()", () => {
   beforeEach(() => {
     // Reset the static channel before each test to ensure test isolation
