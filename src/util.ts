@@ -188,7 +188,7 @@ export class RequestContextDto {
   device!: DeviceDto;
 
   @Expose()
-  location!: iplocation.ReturnType;
+  location?: iplocation.ReturnType;
 
   @Expose()
   time!: Date;
@@ -231,7 +231,11 @@ export async function ReqContextMiddleware(
   reqContext.requestId = reqId;
   reqContext.ipAddress = getClientIp(req) || "";
   reqContext.device = extractDeviceNameAndIp(req);
-  reqContext.location = await iplocation(reqContext.requestId);
+  try {
+    reqContext.location = await iplocation(reqContext.requestId);
+  } catch (_) {
+    // it throws error when provided with invalid ip address
+  }
 
   req.context = reqContext;
 
