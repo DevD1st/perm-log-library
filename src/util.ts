@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from "express";
 import { getClientIp } from "request-ip";
 import iplocation from "iplocation";
 import DeviceDetector from "device-detector-js";
+import { Types } from "mongoose";
 
 export const PERM_LOG_EXCHANGE = "perm_log_exchange";
 export const X_REQUEST_ID = "x-request-id";
@@ -76,10 +77,13 @@ export enum PermLogEventsEnum {
 
 //-----------------------CLASSES------------------------//
 export class PermRequested {
+  @Expose()
   reqContext!: RequestContextDto;
 
+  @Expose()
   permNumber!: number;
 
+  @Expose()
   delay?: number;
 
   constructor(dto?: PermRequested) {
@@ -88,7 +92,10 @@ export class PermRequested {
 }
 
 export class PermCalculated {
+  @Expose()
   permNumber!: number;
+
+  @Expose()
   result!: number;
 
   constructor(dto?: PermCalculated) {
@@ -97,6 +104,7 @@ export class PermCalculated {
 }
 
 export class RabbitEmptyMessage {
+  @Expose()
   queueName!: string;
 
   constructor(dto?: RabbitEmptyMessage) {
@@ -169,6 +177,29 @@ export class RequestContextDto {
   constructor(dto?: RequestContextDto) {
     if (dto) Object.assign(this, dto);
   }
+}
+
+export class PermSchemaDto {
+  @Expose()
+  _id!: Types.ObjectId;
+
+  @Expose()
+  permNumber!: number;
+
+  @Expose()
+  calculatedFactorial!: number;
+
+  @Expose()
+  appliedDelay!: number;
+
+  @Expose()
+  updatedAt!: Date;
+
+  @Expose()
+  createdAt!: Date;
+
+  @Expose()
+  __v!: number;
 }
 
 //-----------------------FUNCTIONS------------------------//
