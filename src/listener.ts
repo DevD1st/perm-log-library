@@ -45,19 +45,22 @@ export class EventListener {
         durable: true,
       });
 
-      events.forEach((event) =>
+      events.forEach((event) => {
         EventListener.channel!.bindQueue(
           EventListener.queue!.queue,
           PERM_LOG_EXCHANGE,
           event
-        )
-      );
+        );
+        console.log(`Binded ${event} to ${EventListener.queue!.queue}`);
+      });
 
       EventListener.listener = messageListener;
       EventListener.onMessage(); // set up subscriber
 
       return EventListener.channel;
     } catch (error: any) {
+      console.error(error);
+
       throw new PermLogError({
         name: PermLogErrorCodeEnum.RabbitInit,
         message: "Unable to initialize rabbitmq",
@@ -68,6 +71,8 @@ export class EventListener {
   }
 
   private static onMessage() {
+    console.log("Library Listener received message");
+
     EventListener.channel?.consume(
       EventListener.queue!.queue,
       (message) => {
