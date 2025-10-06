@@ -12,8 +12,9 @@ type ListenerType = (message: rabbit.ConsumeMessage) => void;
 
 export class EventListener {
   private static channel?: rabbit.Channel;
-  private static queue?: rabbit.Replies.AssertQueue;
-  private static listener?: ListenerType;
+  static queue?: rabbit.Replies.AssertQueue; // TODO: remove later
+  // private static listener?: ListenerType;
+  static listener?: ListenerType; // TODO: remove later
 
   private constructor() {}
 
@@ -37,7 +38,7 @@ export class EventListener {
     try {
       const conn = await rabbit.connect(rabbitConnString);
       EventListener.channel = await conn.createChannel();
-      EventListener.channel.prefetch(1);
+      await EventListener.channel.prefetch(1);
       await EventListener.channel.assertExchange(PERM_LOG_EXCHANGE, "topic", {
         durable: true,
       });
@@ -45,8 +46,8 @@ export class EventListener {
         durable: true,
       });
 
-      events.forEach((event) => {
-        EventListener.channel!.bindQueue(
+      events.forEach(async (event) => {
+        await EventListener.channel!.bindQueue(
           EventListener.queue!.queue,
           PERM_LOG_EXCHANGE,
           event
@@ -70,10 +71,10 @@ export class EventListener {
     }
   }
 
-  private static onMessage() {
-    console.log("Library Listener received message");
+  private static async onMessage() {
+    console.log("Library Listener bindQueue init");
 
-    EventListener.channel?.consume(
+    await EventListener.channel!.consume(
       EventListener.queue!.queue,
       (message) => {
         if (message == null) {
@@ -97,7 +98,7 @@ export class EventListener {
         if (this.listener) this.listener(message);
       },
       {
-        noAck: true,
+        noAck: false,
       }
     );
   }
