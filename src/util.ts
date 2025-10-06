@@ -100,6 +100,35 @@ export class PermSchemaDto {
   __v!: number;
 }
 
+export class LogSchemaDto {
+  @Expose()
+  _id!: Types.ObjectId;
+
+  @Expose()
+  level!: LogLevelEnum;
+
+  @Expose()
+  messageType?: PermLogEventsEnum;
+
+  @Expose()
+  permId?: Types.ObjectId;
+
+  @Expose()
+  permNumber?: number;
+
+  @Expose()
+  reqContext?: RequestContextDto;
+
+  @Expose()
+  updatedAt!: Date;
+
+  @Expose()
+  createdAt!: Date;
+
+  @Expose()
+  __v!: number;
+}
+
 export class PermRequested {
   @Expose()
   reqContext!: RequestContextDto;
