@@ -12,9 +12,8 @@ type ListenerType = (message: rabbit.ConsumeMessage) => void;
 
 export class EventListener {
   private static channel?: rabbit.Channel;
-  static queue?: rabbit.Replies.AssertQueue; // TODO: remove later
-  // private static listener?: ListenerType;
-  static listener?: ListenerType; // TODO: remove later
+  private static queue?: rabbit.Replies.AssertQueue;
+  private static listener?: ListenerType;
 
   private constructor() {}
 
@@ -52,7 +51,6 @@ export class EventListener {
           PERM_LOG_EXCHANGE,
           event
         );
-        console.log(`Binded ${event} to ${EventListener.queue!.queue}`);
       });
 
       EventListener.listener = messageListener;
@@ -72,8 +70,6 @@ export class EventListener {
   }
 
   private static async onMessage() {
-    console.log("Library Listener bindQueue init");
-
     await EventListener.channel!.consume(
       EventListener.queue!.queue,
       (message) => {
